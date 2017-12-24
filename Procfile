@@ -1,1 +1,1 @@
-web: ruby bit.rb
+console: ruby bit.rb
