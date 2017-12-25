@@ -1,1 +1,1 @@
-bit: ruby ./bit.rb
+worker: ruby ./bit.rb
