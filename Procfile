@@ -1,1 +1,1 @@
-console: ruby bit.rb
+bit: ruby ./bit.rb
