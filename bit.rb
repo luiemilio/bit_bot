@@ -4,6 +4,15 @@ require 'excon'
 require 'json'
 require_relative 'token'
 
+def get_all_coin_symbols
+  response = Excon.get('https://api.coinmarketcap.com/v1/ticker/')
+  coin_hash = {}
+  JSON.parse(response.body).each do |coin|
+    coin_hash[coin["symbol"]] = coin["id"] 
+  end
+  coin_hash
+end
+
 def get_data(coin)
   coin == 'all' ? get_all_coins : get_coin(coin)
 end
@@ -30,17 +39,16 @@ end
 
 def run_bot
   token = KEY
+  all_coin_symbols = get_all_coin_symbols
   Telegram::Bot::Client.run(token) do |bot|
     bot.listen do |message|
-      case message.text
-      when '/btc'
-        bot.api.send_message(chat_id: message.chat.id, text: get_data("bitcoin"))
-      when '/ltc'
-        bot.api.send_message(chat_id: message.chat.id, text: get_data("litecoin"))
-      when '/eth'
-        bot.api.send_message(chat_id: message.chat.id, text: get_data("ethereum"))
-      when '/xrp'
-        bot.api.send_message(chat_id: message.chat.id, text: get_data("ripple"))
+      case message.text[0]
+      when '/'
+        coin_sym = message.text[1..-1].upcase
+        if all_coin_symbols.keys.include?(coin_sym)
+          coin_name = all_coin_symbols[coin_sym]
+          bot.api.send_message(chat_id: message.chat.id, text: get_data(coin_name))
+        end
       when '/all'
         bot.api.send_message(chat_id: message.chat.id, text: get_data("all"))
       end
@@ -49,3 +57,5 @@ def run_bot
 end
 
 run_bot
+
+
