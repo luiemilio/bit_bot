@@ -19,9 +19,9 @@ end
 
 def get_all_coins
   response = Excon.get('https://api.coinmarketcap.com/v1/ticker/?limit=10')
-  data = ''
+  data = "Top 10 Coins on coinmarketcap.com\n"
   JSON.parse(response.body).each do |coin|
-    data += "#{coin["name"]}: #{coin["price_usd"]} USD\n"
+    data += "#{coin["rank"]} - #{coin["name"]}: #{coin["price_usd"]} USD\n"
   end
   data
 end
@@ -42,15 +42,15 @@ def run_bot
   all_coin_symbols = get_all_coin_symbols
   Telegram::Bot::Client.run(token) do |bot|
     bot.listen do |message|
+      coin_sym = message.text[1..-1].upcase
       case message.text[0]
       when '/'
-        coin_sym = message.text[1..-1].upcase
         if all_coin_symbols.keys.include?(coin_sym)
           coin_name = all_coin_symbols[coin_sym]
           bot.api.send_message(chat_id: message.chat.id, text: get_data(coin_name))
+        elsif coin_sym == 'ALL'
+          bot.api.send_message(chat_id: message.chat.id, text: get_data("all"))
         end
-      when '/all'
-        bot.api.send_message(chat_id: message.chat.id, text: get_data("all"))
       end
     end
   end
